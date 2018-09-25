@@ -28,6 +28,10 @@ def main():
     patterns = [x[0] for x in sources]
     filenames = [x.format(dt.date.today().strftime('%m%d%Y')) for x in patterns]
 
+    # prep dirs
+    os.makedirs(src_dir, exist_ok=True)
+    os.makedirs(out_dir, exist_ok=True)
+
     # get files and save them to src
     cap = CommonApp(cap_user, cap_password)
     for fn in filenames:
