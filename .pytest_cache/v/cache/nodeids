@@ -1,0 +1,6 @@
+[
+  "tests/test_cap_index.py::test_read_form_type[123125125_123125!1231245212.pdf-APP]",
+  "tests/test_cap_index.py::test_read_form_type[21342341_134124!81724726.pdf-APP]",
+  "tests/test_cap_index.py::test_read_form_type[123125125_123125!123124_ST_23415212.pdf-ST]",
+  "tests/test_cap_index.py::test_read_form_type[123125125_123125!123124_TE_23415212.pdf-TE]"
+]

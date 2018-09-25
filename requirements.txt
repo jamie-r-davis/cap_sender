@@ -1,0 +1,3 @@
+git+https://github.com/jamie-r-davis/commonapp#egg=master
+requests
+lxml
