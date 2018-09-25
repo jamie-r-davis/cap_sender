@@ -1,6 +1,7 @@
 import argparse
 import datetime as dt
 import os
+import pytz
 import requests
 from config import Config
 from commonapp import CommonApp
@@ -21,12 +22,14 @@ def main():
     slate_user = Config.get_or_else('slate', 'USERNAME', '')
     slate_password = Config.get_or_else('slate', 'PASSWORD', '')
     slate_url = Config.get_or_else('slate', 'URL', '')
+    timezone = Config.get_or_else('data', 'TIMEZONE', 'America/Detroit')
     src_dir = Config.get_or_else('data', 'SRC_DIR', 'data/src')
     out_dir = Config.get_or_else('data', 'OUT_DIR', 'data/out_dir')
     sources = Config.get_or_else('data', 'SOURCES', '')
     sources = [v.split(':') for v in sources.split(' ')]
     patterns = [x[0] for x in sources]
-    filenames = [x.format(dt.date.today().strftime('%m%d%Y')) for x in patterns]
+    today = dt.datetime.now(pytz.timezone(timezone)).date()
+    filenames = [x.format(today.strftime('%m%d%Y')) for x in patterns]
 
     # prep dirs
     os.makedirs(src_dir, exist_ok=True)

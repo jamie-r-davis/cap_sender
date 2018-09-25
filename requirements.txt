@@ -1,3 +1,4 @@
-git+https://github.com/jamie-r-davis/commonapp#egg=master
-requests
 lxml
+pytz
+requests
+git+https://github.com/jamie-r-davis/commonapp#egg=master
