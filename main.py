@@ -32,6 +32,9 @@ def main():
     out_dir = Config.get_or_else('data', 'OUT_DIR', 'data/out_dir')
     today = dt.datetime.now(pytz.timezone(timezone)).date()
 
+    # if sources declared in arguments,
+    # only handle those sources;
+    # otherwise use every source
     if args.sources:
         sources = [source for source in SOURCES
                    if source.get('name') in args.sources]
