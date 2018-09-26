@@ -29,4 +29,10 @@ SOURCES = [
         'dttm_fmt': '%m_%d_%Y',
         'source': 'f595fce2-eab6-4e0a-aab3-84a6ee4f9784'
     },
+    {
+        'name': 'commonapp_transfer_application_data',
+        'pattern': '{}_TR_Applications.txt',
+        'dttm_fmt': '%m_%d_%Y',
+        'source': '59c95237-6fa0-4761-993e-102a0200b03a'
+    }
 ]
