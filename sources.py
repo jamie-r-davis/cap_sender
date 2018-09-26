@@ -15,7 +15,7 @@ SOURCES = [
         'name': 'commonapp_transfer_applications',
         'pattern': '{}_TR_Applications.zip',
         'dttm_fmt': '%m_%d_%Y',
-        'source': 'b6535f5-5e77-4a91-b810-f34373f82c5e'
+        'source': 'ab6535f5-5e77-4a91-b810-f34373f82c5e'
     },
     {
         'name': 'commonapp_transfer_college_transcripts',
