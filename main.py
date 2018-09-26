@@ -6,7 +6,7 @@ import requests
 
 from config import Config
 from commonapp import CommonApp
-from cap_sender import process_zips
+
 from cap_sender.cap_zips import (FreshmanAppProcessor, FreshmanFormsProcessor,
                                  TransferAppProcessor, TransferEvalProcessor,
                                  TransferTranscriptProcessor)
