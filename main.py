@@ -69,9 +69,6 @@ def main():
                 p.match(fn).transform()
                 break
 
-    # flatten xml files to csv, place output in out_dir
-    # process_zips(src_dir, out_dir)
-
     for source in sources:
         # use glob to get all files in out_dir matching pattern
         fp = os.path.join(out_dir, source['pattern'].format('*'))
@@ -86,14 +83,7 @@ def main():
                 print('Done')
             else:
                 print(f'Error: {r.status_code}')
-    #        try:
-    #            os.remove(fn)
-    #        except:
-    #            pass
 
-    # cleanup
-    #for fp in glob(os.path.join(out_dir, '*')):
-    #    os.remove(fp)
 
 if __name__ == '__main__':
     main()
