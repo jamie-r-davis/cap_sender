@@ -1,8 +1,4 @@
 lxml
 pytz
 requests
-<<<<<<< HEAD
 git+https://github.com/jamie-r-davis/commonapp
-=======
-git+https://github.com/jamie-r-davis/commonapp#egg=commonapp
->>>>>>> b06433a728d3fb4d99f9629797421c8708325a61
