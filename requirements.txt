@@ -1,4 +1,4 @@
 lxml
 pytz
 requests
-git+https://github.com/jamie-r-davis/commonapp#egg=master
+git+https://github.com/jamie-r-davis/commonapp#egg=commonapp
