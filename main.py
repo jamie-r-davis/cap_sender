@@ -8,7 +8,8 @@ from config import Config
 from commonapp import CommonApp
 
 from cap_sender.cap_zips import (FreshmanAppProcessor, FreshmanFormsProcessor,
-                                 TransferAppProcessor, TransferEvalProcessor,
+                                 TransferAppProcessor, TransferAppDataProcessor,
+                                 TransferEvalProcessor,
                                  TransferTranscriptProcessor)
 from glob import glob
 from sources import SOURCES
@@ -59,8 +60,8 @@ def main():
 
     # process each file
     processors = [FreshmanAppProcessor, FreshmanFormsProcessor,
-                  TransferAppProcessor, TransferEvalProcessor,
-                  TransferTranscriptProcessor]
+                  TransferAppProcessor, TransferAppDataProcessor,
+                  TransferEvalProcessor, TransferTranscriptProcessor]
     for f in os.listdir(out_dir):
         fn = os.path.join(out_dir, f)
         print(f'Processing {fn}')

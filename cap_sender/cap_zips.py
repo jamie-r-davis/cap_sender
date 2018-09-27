@@ -35,6 +35,21 @@ class ZipProcessor:
         pass
 
 
+class TransferAppDataProcessor(ZipProcessor):
+    """
+    Class for handling Transfer Application Data files.
+    """
+    zip_pattern = r'\d+_\d+_\d+_TR_Applications\.txt'
+
+    def transform(self):
+        with open(self.fn, encoding='utf8') as f:
+            data = f.read()
+        pattern = r'custom_questions_(\d+)_(.+?)(?=[\t\r\n])'
+        replacement = r'\2_\1'
+        with open(self.fn, 'w', encoding='utf8') as f:
+            f.write(re.sub(pattern, replacement, data))
+
+
 class TransferProcessor(ZipProcessor):
     """
     Class for handling CommonApp transfer zip files, which all need
