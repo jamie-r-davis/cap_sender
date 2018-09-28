@@ -42,6 +42,8 @@ def main():
     else:
         sources = SOURCES
 
+    sources.sort(key=lambda x: x['order'])
+
     # prep dirs
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
