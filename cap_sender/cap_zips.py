@@ -67,7 +67,8 @@ class TransferProcessor(ZipProcessor):
         with StringIO(newline='') as f:
             writer = csv.DictWriter(f,
                                     fieldnames=self.pdf_fieldnames,
-                                    delimiter='\t')
+                                    delimiter='\t',
+                                    extrasection='ignore')
             writer.writeheader()
             for fn in namelist:
                 writer.writerow(re.match(self.pdf_pattern, fn).groupdict())
@@ -104,7 +105,8 @@ class TransferTranscriptProcessor(TransferProcessor):
     zip_pattern = r'\d+_\d+_\d+_TR_College_Transcript\.zip'
     pdf_pattern = r'(?P<filename>TR_(?P<commonapp_id>\d+)_(?P<last_name>.+?)_(?P<first_name>.+?)_(?P<doc_id>\d+)_(?P<doc_type>Transcript)_(?P<college_code>\d+)_(?P<college_name>.+?)_(?P<submit_dt>.+?)\.pdf)'
     pdf_fieldnames = ['filename', 'commonapp_id', 'last_name', 'first_name',
-                      'doc_id', 'college_name', 'submit_dt']
+                      'doc_id', 'doc_type', 'college_code', 'college_name',
+                      'submit_dt']
 
 
 class FreshmanProcessor(ZipProcessor):
