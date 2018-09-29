@@ -68,7 +68,7 @@ class TransferProcessor(ZipProcessor):
             writer = csv.DictWriter(f,
                                     fieldnames=self.pdf_fieldnames,
                                     delimiter='\t',
-                                    extrasection='ignore')
+                                    extrasaction='ignore')
             writer.writeheader()
             for fn in namelist:
                 writer.writerow(re.match(self.pdf_pattern, fn).groupdict())
