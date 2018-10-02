@@ -71,7 +71,13 @@ class TransferProcessor(ZipProcessor):
                                     extrasaction='ignore')
             writer.writeheader()
             for fn in namelist:
-                writer.writerow(re.match(self.pdf_pattern, fn).groupdict())
+                try:
+                    writer.writerow(re.match(self.pdf_pattern, fn).groupdict())
+                except AttributeError as e:
+                    print(f'Error parsing filename:\n'
+                          f'  zipfile: {self.fn}\n'
+                          f'  pdf:     {fn}')
+                    raise
             with ZipFile(self.fn, 'a') as zf:
                 zf.writestr('index.txt', f.getvalue())
 
@@ -103,7 +109,7 @@ class TransferTranscriptProcessor(TransferProcessor):
     CommonApp Transfer Transcript zip files.
     """
     zip_pattern = r'\d+_\d+_\d+_TR_College_Transcript\.zip'
-    pdf_pattern = r'(?P<filename>TR_(?P<commonapp_id>\d+)_(?P<last_name>.+?)_(?P<first_name>.+?)_(?P<doc_id>\d+)_(?P<doc_type>Transcript)_(?P<college_code>\d+)_(?P<college_name>.+?)_(?P<submit_dt>.+?)\.pdf)'
+    pdf_pattern = r'(?P<filename>TR_(?P<commonapp_id>\d+)_(?P<last_name>.+?)_(?P<first_name>.+?)_(?P<doc_id>\d+)_(?P<doc_type>Transcript)_(?P<college_code>.+?)_(?P<college_name>.+?)_(?P<submit_dt>.+?)\.pdf)'
     pdf_fieldnames = ['filename', 'commonapp_id', 'last_name', 'first_name',
                       'doc_id', 'doc_type', 'college_code', 'college_name',
                       'submit_dt']
