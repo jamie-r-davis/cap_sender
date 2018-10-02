@@ -77,7 +77,6 @@ class TransferProcessor(ZipProcessor):
                     print(f'Error parsing filename:\n'
                           f'  zipfile: {self.fn}\n'
                           f'  pdf:     {fn}')
-                    raise
             with ZipFile(self.fn, 'a') as zf:
                 zf.writestr('index.txt', f.getvalue())
 
