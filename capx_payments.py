@@ -19,23 +19,32 @@ def main():
     wa_payment_export = Config.get_or_else('webadmit', 'PAYMENT_EXPORT', '')
     wa_url = 'https://api.webadmit.org'
 
-    print(wa_api_key, wa_user_id, wa_payment_export)
-
     s = requests.session()
     s.headers['x-api-key'] = wa_api_key
 
     # trigger the export
     url = wa_url + '/api/v1/user_identities/{user_id}/exports/{export_id}/export_files'
-    r = s.post(url.format(user_id=wa_user_id, export_id=wa_payment_export))
-    assert r.status_code == 200
+    url = url.format(user_id=wa_user_id, export_id=wa_payment_export)
+    r = s.post(url)
+    try:
+        assert r.status_code == 200
+    except AssertionError:
+        print(url)
+        print(r.text)
+        raise
     while True:
-        r = s.get(url.format(user_id=wa_user_id, export_id=wa_payment_export))
+        r = s.get(url)
         if r.json()['export_files'][0]['status'] == 'Available':
             break
         time.sleep(3)
     href = r.json()['export_files'][0]['href']
     r2 = s.get(wa_url + href)
-    assert r2.status_code == 200
+    try:
+        assert r2.status_code == 200
+    except AssertionError:
+        print(href)
+        print(r2.text)
+        raise
     download_url = r2.json()['export_files']['download_url']
     r3 = s.get(download_url)
     # send to slate
