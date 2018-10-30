@@ -1,3 +1,4 @@
+humanfriendly
 lxml
 pytz
 requests

@@ -1,6 +1,8 @@
 import argparse
 import datetime as dt
+import humanfriendly
 import os
+import paramiko
 import pytz
 import requests
 
@@ -20,18 +22,23 @@ def main():
     parser.add_argument('-c', '--config', help='Custom config file.',
                         type=argparse.FileType('r'))
     parser.add_argument('-s', '--sources', nargs='*', help='Source names.')
+    parser.add_argument('-d', '--date', help='The date to pull (YYYYMMDD)')
     args = parser.parse_args()
 
     Config.init_config(args.config)
 
-    cap_user = Config.get_or_else('commonapp', 'USERNAME', '')
-    cap_password = Config.get_or_else('commonapp', 'PASSWORD', '')
+    cap_user = Config.get_or_else('commonapp', 'SFTP_USERNAME', '')
+    cap_password = Config.get_or_else('commonapp', 'SFTP_PASSWORD', '')
     slate_user = Config.get_or_else('slate', 'USERNAME', '')
     slate_password = Config.get_or_else('slate', 'PASSWORD', '')
     slate_url = Config.get_or_else('slate', 'URL', '')
+    slate_hostname = Config.get_or_else('slate', 'HOSTNAME', '')
     timezone = Config.get_or_else('data', 'TIMEZONE', 'America/Detroit')
     out_dir = Config.get_or_else('data', 'OUT_DIR', 'data/out_dir')
-    today = dt.datetime.now(pytz.timezone(timezone)).date()
+    if not args.date:
+        today = dt.datetime.now(pytz.timezone(timezone)).date()
+    else:
+        today = dt.datetime.strptime(args.date, '%Y%m%d')
 
     # if sources declared in arguments,
     # only handle those sources;
@@ -50,20 +57,34 @@ def main():
         os.remove(os.path.join(out_dir, f))
 
     # get files and save them to src
-    cap = CommonApp(cap_user, cap_password)
-    for source in sources:
-        fn = source['pattern'].format(today.strftime(source['dttm_fmt']))
-        print(f'Downloading {fn}...')
-        try:
-            cap.retrieve_file(filename=fn, local_path=os.path.join(out_dir, fn))
-            print('Success')
-        except Exception as e:
-            print(f'Failure: {e}')
+    with paramiko.SSHClient() as ssh:
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh.connect(hostname='ftp.commonapp.org',
+                    port=22,
+                    username=cap_user,
+                    password=cap_password)
+        with ssh.open_sftp() as sftp:
+            for source in sources:
+                fn = source['pattern'].format(today.strftime(source['dttm_fmt']))
+                attr = sftp.lstat(fn)
+                filesize = humanfriendly.format_size(attr.st_size)
+                spinner = humanfriendly.Spinner(
+                    label=f'Downloading {fn} ({filesize})',
+                    total=attr.st_size,
+                    hide_cursor=True)
+                try:
+                    sftp.get(remotepath=fn,
+                             localpath=os.path.join(out_dir, fn),
+                             callback=lambda x,y: spinner.step(x))
+                    print('Success')
+                except Exception as e:
+                    print(f'Failure: {e}')
 
     # process each file
     processors = [FreshmanAppProcessor, FreshmanFormsProcessor,
                   TransferAppProcessor, TransferAppDataProcessor,
                   TransferEvalProcessor, TransferTranscriptProcessor]
+
     for f in os.listdir(out_dir):
         fn = os.path.join(out_dir, f)
         print(f'Processing {fn}')
@@ -72,20 +93,22 @@ def main():
                 p.match(fn).transform()
                 break
 
+
     for source in sources:
         # use glob to get all files in out_dir matching pattern
         fp = os.path.join(out_dir, source['pattern'].format('*'))
         for fn in glob(fp):
             bn = os.path.basename(fn)
+            dest_path = os.path.join(source['destination'], bn)
             print(f"Sending {bn}...")
-            url = slate_url + '/manage/service/import?cmd=load&format={}'
-            r = requests.post(url.format(source['source']),
-                             data=open(fn ,'rb'),
-                             auth=(slate_user, slate_password))
-            if r.status_code == 200:
-                print('Done')
-            else:
-                print(f'Error: {r.status_code}')
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(hostname=slate_hostname,
+                        port=22,
+                        username=slate_user,
+                        password=slate_password)
+            sftp = ssh.open_sftp()
+            sftp.put(fn, dest_path)
 
 
 if __name__ == '__main__':
