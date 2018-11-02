@@ -54,7 +54,7 @@ class CAPIndex:
 
     def to_csv(self, filepath, **kwargs):
         keys = self.data[0].keys()
-        with open(filepath, 'w', newline='') as csvfile:
+        with open(filepath, 'w', newline='', encoding='utf8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=keys, **kwargs)
             writer.writeheader()
             for item in self.data:

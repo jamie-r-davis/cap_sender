@@ -130,10 +130,33 @@ class FreshmanProcessor(ZipProcessor):
                 c = CAPIndex(infile)
                 c.to_csv(outfile, delimiter='\t')
                 os.remove(infile)
-        with ZipFile(self.fn, 'w') as zf:
-            for f in os.listdir(temp_dir.name):
-                out_file = os.path.join(temp_dir.name, f)
-                zf.write(out_file, f)
+        # chunk data into 100 file zips
+        with open(outfile) as src_index:
+            hdr, *data = src_index.readlines()
+        for n, i in enumerate(range(0, len(data), 100)):
+            out_dir = os.path.join(temp_dir.name, f"{n:0>3}")
+            os.makedirs(out_dir, exist_ok=True)
+            for l in data[i:i+100]:
+                fn, *_ = l.split('\t')
+                src_path = os.path.join(temp_dir.name, fn)
+                dest_path = os.path.join(out_dir, fn)
+                os.replace(src_path, dest_path)
+            # write chunked index file
+            index_dest = os.path.join(out_dir, os.path.basename(outfile))
+            print(f"Writing index to {index_dest}...")
+            with open(index_dest, 'w') as index_file:
+                index_file.write(hdr)
+                index_file.writelines(data[i:i+100])
+            # write chunked zip
+            parent, bn = os.path.split(self.fn)
+            stem, ext = os.path.splitext(bn)
+            out_zip = os.path.join(parent, f"{stem}_{n:0>3}{ext}")
+            with ZipFile(out_zip, 'w') as zf:
+                for f in os.listdir(out_dir):
+                    out_file = os.path.join(out_dir, f)
+                    zf.write(out_file, f)
+        # delete original file
+        os.remove(self.fn)
 
 
 class FreshmanAppProcessor(FreshmanProcessor):

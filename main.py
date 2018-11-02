@@ -99,6 +99,7 @@ def main():
         fp = os.path.join(out_dir, source['pattern'].format('*'))
         for fn in glob(fp):
             bn = os.path.basename(fn)
+            filesize = humanfriendly.format_size(os.stat(fn).st_size)
             dest_path = os.path.join(source['destination'], bn)
             print(f"Sending {bn}...")
             ssh = paramiko.SSHClient()
@@ -108,7 +109,11 @@ def main():
                         username=slate_user,
                         password=slate_password)
             sftp = ssh.open_sftp()
-            sftp.put(fn, dest_path)
+            spinner = humanfriendly.Spinner(
+                label=f'Sending {fn} ({filesize})',
+                total=os.stat(fn).st_size,
+                hide_cursor=True)
+            sftp.put(fn, dest_path, callback=lambda x,y: spinner.step(x))
 
 
 if __name__ == '__main__':
