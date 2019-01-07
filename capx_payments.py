@@ -52,6 +52,7 @@ def main():
     r4 = s.post(slate_endpoint.format(slate_source),
                 data=r3.content,
                 auth=(slate_user, slate_password))
+    print(r4.status_code, r4.text)
 
 
 if __name__ == '__main__':

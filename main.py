@@ -5,7 +5,7 @@ import os
 import paramiko
 import pytz
 import requests
-
+import notifiers
 from config import Config
 from commonapp import CommonApp
 
@@ -31,7 +31,6 @@ def main():
     cap_password = Config.get_or_else('commonapp', 'SFTP_PASSWORD', '')
     slate_user = Config.get_or_else('slate', 'USERNAME', '')
     slate_password = Config.get_or_else('slate', 'PASSWORD', '')
-    slate_url = Config.get_or_else('slate', 'URL', '')
     slate_hostname = Config.get_or_else('slate', 'HOSTNAME', '')
     timezone = Config.get_or_else('data', 'TIMEZONE', 'America/Detroit')
     out_dir = Config.get_or_else('data', 'OUT_DIR', 'data/out_dir')
@@ -66,7 +65,11 @@ def main():
         with ssh.open_sftp() as sftp:
             for source in sources:
                 fn = source['pattern'].format(today.strftime(source['dttm_fmt']))
-                attr = sftp.lstat(fn)
+                try:
+                    attr = sftp.lstat(fn)
+                except FileNotFoundError:
+                    print(f"File not found: {fn}. Skipping...")
+                    continue
                 filesize = humanfriendly.format_size(attr.st_size)
                 spinner = humanfriendly.Spinner(
                     label=f'Downloading {fn} ({filesize})',
@@ -93,12 +96,14 @@ def main():
                 p.match(fn).transform()
                 break
 
-
+    sent_files = []
     for source in sources:
         # use glob to get all files in out_dir matching pattern
         fp = os.path.join(out_dir, source['pattern'].format('*'))
         for fn in glob(fp):
             bn = os.path.basename(fn)
+            attr = os.stat(fn)
+            filesize = humanfriendly.format_size(attr.st_size)
             dest_path = os.path.join(source['destination'], bn)
             print(f"Sending {bn}...")
             ssh = paramiko.SSHClient()
@@ -108,7 +113,20 @@ def main():
                         username=slate_user,
                         password=slate_password)
             sftp = ssh.open_sftp()
-            sftp.put(fn, dest_path)
+            spinner = humanfriendly.Spinner(
+                label=f'Sending {fn} ({filesize})',
+                total=attr.st_size,
+                hide_cursor=True)
+            # sftp.put(fn, dest_path, callback=lambda x,y: spinner.step(x))
+            sent_files.append({'filename': bn, 'filesize': filesize})
+
+    notifier = notifiers.get_notifier('gmail')
+    template = open('templates/email_template.tmpl').read()
+    items = ''.join(['<li><strong>{filename}</strong> ({filesize})</li>'.format(**x) for x in sent_files])
+    msg = template.format(items=items)
+    subject = "CAP Sender Completed [{}]".format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    notifier.notify(message=msg, subject=subject, html=True, **Config.config._sections['notifier'])
+    
 
 
 if __name__ == '__main__':
